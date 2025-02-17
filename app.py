@@ -21,12 +21,68 @@ def get_google_jobs_results(query, location="United States"):
     response = requests.get(url, params=params)
     data = response.json()
 
-    return data.get("jobs_results", [])
+    # 🛠️ Debug: Print Full API Response
+    print("Full API Response:", data)
 
-# Function to extract job sources
+    return data.get("jobs_results", [])  # Ensure it correctly fetches job listings
+
+# Function to extract job sources (websites)
+from urllib.parse import urlparse
+
+
 def extract_job_sources(jobs):
-    return [job["detected_extensions"]["source"] for job in jobs if "detected_extensions" in job and "source" in job["detected_extensions"]]
+    sources = []
 
+<<<<<<< HEAD
+    for job in jobs:
+        # 🛠️ Debug: Print job entry to check its structure
+        print("🔍 Job Entry:", job)
+
+        # 1️⃣ Extract domains from the 'apply_options' field
+        if "apply_options" in job and isinstance(job["apply_options"], list):
+            for source in job["apply_options"]:
+                if "link" in source:
+                    domain = urlparse(source["link"]).netloc  # Extract domain from URL
+                    sources.append(domain)
+        else:
+            print("⚠️ Warning: 'apply_options' field missing in this job entry")
+
+    # 🛠️ Debug: Print extracted job sources
+    print("✅ Extracted Job Sources:", sources)
+    return sources
+
+
+
+
+
+# Streamlit UI
+st.title("Google Jobs Tracker")
+st.write("Track which websites rank in Google for Jobs for a specific role and location.")
+
+# User inputs
+job_query = st.text_input("Enter Job Title:", "Software Engineer")
+location = st.text_input("Enter Location:", "United States")
+
+if st.button("Fetch Job Listings"):
+    jobs = get_google_jobs_results(job_query, location)
+    
+    # Extract job sources (websites)
+    job_sources = extract_job_sources(jobs)
+
+    if job_sources:
+        # Count occurrences of each website
+        website_counts = pd.DataFrame(pd.Series(job_sources).value_counts()).reset_index()
+        website_counts.columns = ["Website", "Occurrences"]
+
+        # Display results
+        st.write(f"### Website Occurrences for '{job_query}' in {location}")
+        st.dataframe(website_counts)
+
+        # Show a bar chart for visualization
+        st.bar_chart(website_counts.set_index("Website"))
+    else:
+        st.error("⚠️ No job listings found, or no sources detected. Try a different query.")
+=======
 # Function to calculate website share
 def calculate_website_share(sources):
     source_counts = Counter(sources)
@@ -54,3 +110,4 @@ if st.button("Fetch Job Listings"):
         st.bar_chart(website_share_df.set_index("Website")["Share (%)"])
     else:
         st.write("No job results found. Try a different query.")
+>>>>>>> 625d4d667a024f903da96fa0c44a38d466691dfb
