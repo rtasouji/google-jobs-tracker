@@ -2,12 +2,10 @@ import streamlit as st
 import requests
 import pandas as pd
 from collections import Counter
+from urllib.parse import urlparse
 
-# Your SerpApi Key (Replace with your actual API key)
-import streamlit as st
-
+# Your SerpApi Key (Stored in Streamlit Secrets)
 SERP_API_KEY = st.secrets["SERP_API_KEY"]
-
 
 # Function to fetch job results from Google Jobs API
 def get_google_jobs_results(query, location="United States"):
@@ -30,9 +28,6 @@ def get_google_jobs_results(query, location="United States"):
     return data.get("jobs_results", [])  # Ensure it correctly fetches job listings
 
 # Function to extract job sources (websites)
-from urllib.parse import urlparse
-
-
 def extract_job_sources(jobs):
     sources = []
 
@@ -52,10 +47,6 @@ def extract_job_sources(jobs):
     # 🛠️ Debug: Print extracted job sources
     print("✅ Extracted Job Sources:", sources)
     return sources
-
-
-
-
 
 # Streamlit UI
 st.title("Google Jobs Tracker")
