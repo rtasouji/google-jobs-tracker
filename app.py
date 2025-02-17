@@ -2,10 +2,12 @@ import streamlit as st
 import requests
 import pandas as pd
 from collections import Counter
-from urllib.parse import urlparse
 
-# Your SerpApi Key (Stored in Streamlit Secrets)
+# Your SerpApi Key (Replace with your actual API key)
+import streamlit as st
+
 SERP_API_KEY = st.secrets["SERP_API_KEY"]
+
 
 # Function to fetch job results from Google Jobs API
 def get_google_jobs_results(query, location="United States"):
@@ -28,6 +30,9 @@ def get_google_jobs_results(query, location="United States"):
     return data.get("jobs_results", [])  # Ensure it correctly fetches job listings
 
 # Function to extract job sources (websites)
+from urllib.parse import urlparse
+
+
 def extract_job_sources(jobs):
     sources = []
 
@@ -48,6 +53,10 @@ def extract_job_sources(jobs):
     print("✅ Extracted Job Sources:", sources)
     return sources
 
+
+
+
+
 # Streamlit UI
 st.title("Google Jobs Tracker")
 st.write("Track which websites rank in Google for Jobs for a specific role and location.")
@@ -63,19 +72,15 @@ if st.button("Fetch Job Listings"):
     job_sources = extract_job_sources(jobs)
 
     if job_sources:
-        # Count occurrences of each website and sort in descending order
-        website_counts = (
-            pd.DataFrame(pd.Series(job_sources).value_counts())
-            .reset_index()
-            .rename(columns={"index": "Website", 0: "Occurrences"})
-            .sort_values(by="Occurrences", ascending=False)  # Sort by occurrences
-        )
-    
+        # Count occurrences of each website
+        website_counts = pd.DataFrame(pd.Series(job_sources).value_counts()).reset_index()
+        website_counts.columns = ["Website", "Occurrences"]
+
         # Display results
         st.write(f"### Website Occurrences for '{job_query}' in {location}")
         st.dataframe(website_counts)
-        
-        # Show a sorted bar chart
+
+        # Show a bar chart
         st.bar_chart(website_counts.set_index("Website"))
 
     else:
