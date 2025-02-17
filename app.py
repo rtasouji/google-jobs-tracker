@@ -4,7 +4,10 @@ import pandas as pd
 from collections import Counter
 
 # Your SerpApi Key (Replace with your actual API key)
-SERP_API_KEY = "46930cc44519939193e43455f1cb55a09588e2f533ba48db87257f5c725d7057"
+import streamlit as st
+
+SERP_API_KEY = st.secrets["SERP_API_KEY"]
+
 
 # Function to fetch job results from Google Jobs API
 def get_google_jobs_results(query, location="United States"):
