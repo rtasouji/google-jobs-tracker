@@ -1,20 +1,19 @@
-from flask import Flask, request, jsonify
+import streamlit as st
 import requests
 import pandas as pd
 from collections import Counter
 
-app = Flask(__name__)
-
+# Your SerpApi Key (Replace with your actual API key)
 SERP_API_KEY = "46930cc44519939193e43455f1cb55a09588e2f533ba48db87257f5c725d7057"
 
-# Function to fetch job listings from Google Jobs
+# Function to fetch job results from Google Jobs API
 def get_google_jobs_results(query, location="United States"):
     url = "https://serpapi.com/search"
     
     params = {
         "engine": "google_jobs",
-        "q": online jobs,
-        "location": Chicago, IL,
+        "q": query,
+        "location": location,
         "hl": "en",
         "api_key": SERP_API_KEY
     }
@@ -32,26 +31,26 @@ def extract_job_sources(jobs):
 def calculate_website_share(sources):
     source_counts = Counter(sources)
     total_jobs = sum(source_counts.values())
-
+    
     share_data = [{"Website": website, "Job Listings": count, "Share (%)": round((count / total_jobs) * 100, 2)} for website, count in source_counts.items()]
     
-    return share_data
+    return pd.DataFrame(share_data)
 
-# API Endpoint
-@app.route("/track_jobs", methods=["GET"])
-def track_jobs():
-    query = request.args.get("query", "Software Engineer")
-    location = request.args.get("location", "United States")
-    
-    jobs = get_google_jobs_results(query, location)
+# Streamlit UI
+st.title("Google Jobs Tracker")
+job_query = st.text_input("Enter Job Title:", "Software Engineer")
+location = st.text_input("Enter Location:", "United States")
+
+if st.button("Fetch Job Listings"):
+    jobs = get_google_jobs_results(job_query, location)
     job_sources = extract_job_sources(jobs)
     
     if job_sources:
-        website_share = calculate_website_share(job_sources)
-        return jsonify({"query": query, "location": location, "data": website_share})
+        website_share_df = calculate_website_share(job_sources)
+        st.write("### Website Share of Google Jobs Results")
+        st.dataframe(website_share_df)
+        
+        # Visualize data
+        st.bar_chart(website_share_df.set_index("Website")["Share (%)"])
     else:
-        return jsonify({"message": "No job listings found"}), 404
-
-# Run Flask App
-if __name__ == "__main__":
-    app.run(debug=True)
+        st.write("No job results found. Try a different query.")
