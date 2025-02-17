@@ -72,15 +72,20 @@ if st.button("Fetch Job Listings"):
     job_sources = extract_job_sources(jobs)
 
     if job_sources:
-        # Count occurrences of each website
-        website_counts = pd.DataFrame(pd.Series(job_sources).value_counts()).reset_index()
-        website_counts.columns = ["Website", "Occurrences"]
-
+        # Count occurrences of each website and sort in descending order
+        website_counts = (
+            pd.DataFrame(pd.Series(job_sources).value_counts())
+            .reset_index()
+            .rename(columns={"index": "Website", 0: "Occurrences"})
+            .sort_values(by="Occurrences", ascending=False)  # Sort by occurrences
+        )
+    
         # Display results
         st.write(f"### Website Occurrences for '{job_query}' in {location}")
         st.dataframe(website_counts)
-
-        # Show a bar chart for visualization
+        
+        # Show a sorted bar chart
         st.bar_chart(website_counts.set_index("Website"))
+
     else:
         st.error("⚠️ No job listings found, or no sources detected. Try a different query.")
