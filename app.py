@@ -33,7 +33,6 @@ from urllib.parse import urlparse
 def extract_job_sources(jobs):
     sources = []
 
-<<<<<<< HEAD
     for job in jobs:
         # 🛠️ Debug: Print job entry to check its structure
         print("🔍 Job Entry:", job)
@@ -82,32 +81,3 @@ if st.button("Fetch Job Listings"):
         st.bar_chart(website_counts.set_index("Website"))
     else:
         st.error("⚠️ No job listings found, or no sources detected. Try a different query.")
-=======
-# Function to calculate website share
-def calculate_website_share(sources):
-    source_counts = Counter(sources)
-    total_jobs = sum(source_counts.values())
-    
-    share_data = [{"Website": website, "Job Listings": count, "Share (%)": round((count / total_jobs) * 100, 2)} for website, count in source_counts.items()]
-    
-    return pd.DataFrame(share_data)
-
-# Streamlit UI
-st.title("Google Jobs Tracker")
-job_query = st.text_input("Enter Job Title:", "Software Engineer")
-location = st.text_input("Enter Location:", "United States")
-
-if st.button("Fetch Job Listings"):
-    jobs = get_google_jobs_results(job_query, location)
-    job_sources = extract_job_sources(jobs)
-    
-    if job_sources:
-        website_share_df = calculate_website_share(job_sources)
-        st.write("### Website Share of Google Jobs Results")
-        st.dataframe(website_share_df)
-        
-        # Visualize data
-        st.bar_chart(website_share_df.set_index("Website")["Share (%)"])
-    else:
-        st.write("No job results found. Try a different query.")
->>>>>>> 625d4d667a024f903da96fa0c44a38d466691dfb
