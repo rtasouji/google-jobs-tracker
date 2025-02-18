@@ -4,6 +4,9 @@ import pandas as pd
 from collections import defaultdict, Counter
 import tldextract  # Extracts domain and subdomain
 
+# Display Logo
+st.image("logo.png", width=200)  # Adjust width as needed
+
 # Your SerpApi Key
 SERP_API_KEY = st.secrets["SERP_API_KEY"]
 
