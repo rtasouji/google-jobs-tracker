@@ -74,7 +74,7 @@ if st.button("Fetch Job Listings"):
     if job_sources:
         # Count occurrences of each website
         website_counts = pd.DataFrame(pd.Series(job_sources).value_counts()).reset_index()
-        website_counts.columns = ["Website", "Occurrences"]
+        website_counts.columns = ["Website", "Count"]
 
         # Display results
         st.write(f"### Website Occurrences for '{job_query}' in {location}")
