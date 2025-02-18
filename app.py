@@ -76,10 +76,13 @@ if st.button("Fetch Job Listings"):
             }
         )
 
+        # ✅ Sort the DataFrame by "Job Listings" in descending order
+        domain_data = domain_data.sort_values(by="Job Listings", ascending=False)
+
         st.write("### Website Share of Google Jobs Results (By Domain)")
         st.dataframe(domain_data)
 
-        # Visualize data
+        # Visualize sorted data
         st.bar_chart(domain_data.set_index("Domain")["Job Listings"])
     else:
         st.write("No job results found. Try a different query.")
