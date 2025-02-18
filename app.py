@@ -4,7 +4,7 @@ import pandas as pd
 from collections import defaultdict, Counter
 
 # Your SerpApi Key
-SERP_API_KEY = "your_serpapi_key"
+SERP_API_KEY = st.secrets["SERP_API_KEY"]
 
 # Function to fetch job listings from Google Jobs API
 def get_google_jobs_results(query, location="United States"):
