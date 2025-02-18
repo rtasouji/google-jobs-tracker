@@ -1,15 +1,12 @@
 import streamlit as st
 import requests
 import pandas as pd
-from collections import Counter
+from collections import defaultdict, Counter
 
-# Your SerpApi Key (Replace with your actual API key)
-import streamlit as st
+# Your SerpApi Key
+SERP_API_KEY = "your_serpapi_key"
 
-SERP_API_KEY = st.secrets["SERP_API_KEY"]
-
-
-# Function to fetch job results from Google Jobs API
+# Function to fetch job listings from Google Jobs API
 def get_google_jobs_results(query, location="United States"):
     url = "https://serpapi.com/search"
     
@@ -24,64 +21,51 @@ def get_google_jobs_results(query, location="United States"):
     response = requests.get(url, params=params)
     data = response.json()
 
-    # 🛠️ Debug: Print Full API Response
-    print("Full API Response:", data)
+    return data.get("jobs_results", [])
 
-    return data.get("jobs_results", [])  # Ensure it correctly fetches job listings
-
-# Function to extract job sources (websites)
-from urllib.parse import urlparse
-
-
-def extract_job_sources(jobs):
-    sources = []
+# Function to extract job sources & calculate average positions
+def extract_job_sources_and_positions(jobs):
+    sources_count = Counter()  # Track count of each website
+    sources_positions = defaultdict(list)  # Track positions of each website
 
     for job in jobs:
-        # 🛠️ Debug: Print job entry to check its structure
-        print("🔍 Job Entry:", job)
+        if "apply_options" in job:
+            for idx, option in enumerate(job["apply_options"], start=1):
+                website = option["title"]
+                sources_count[website] += 1
+                sources_positions[website].append(idx)  # Store the position
 
-        # 1️⃣ Extract domains from the 'apply_options' field
-        if "apply_options" in job and isinstance(job["apply_options"], list):
-            for source in job["apply_options"]:
-                if "link" in source:
-                    domain = urlparse(source["link"]).netloc  # Extract domain from URL
-                    sources.append(domain)
-        else:
-            print("⚠️ Warning: 'apply_options' field missing in this job entry")
+    # Calculate average position for each website
+    sources_avg_position = {
+        website: round(sum(positions) / len(positions), 2)
+        for website, positions in sources_positions.items()
+    }
 
-    # 🛠️ Debug: Print extracted job sources
-    print("✅ Extracted Job Sources:", sources)
-    return sources
-
-
-
-
+    return sources_count, sources_avg_position
 
 # Streamlit UI
 st.title("Google Jobs Tracker")
-st.write("Track which websites rank in Google for Jobs for a specific role and location.")
-
-# User inputs
 job_query = st.text_input("Enter Job Title:", "Software Engineer")
 location = st.text_input("Enter Location:", "United States")
 
 if st.button("Fetch Job Listings"):
     jobs = get_google_jobs_results(job_query, location)
-    
-    # Extract job sources (websites)
-    job_sources = extract_job_sources(jobs)
+    sources_count, sources_avg_position = extract_job_sources_and_positions(jobs)
 
-    if job_sources:
-        # Count occurrences of each website
-        website_counts = pd.DataFrame(pd.Series(job_sources).value_counts()).reset_index()
-        website_counts.columns = ["Website", "Count"]
+    if sources_count:
+        # Convert data to a DataFrame
+        website_data = pd.DataFrame(
+            {
+                "Website": sources_count.keys(),
+                "Job Listings": sources_count.values(),
+                "Avg. Position": [sources_avg_position[site] for site in sources_count.keys()]
+            }
+        )
 
-        # Display results
-        st.write(f"### Website link counts for '{job_query}' in {location}")
-        st.dataframe(website_counts)
+        st.write("### Website Share of Google Jobs Results")
+        st.dataframe(website_data)
 
-        # Show a bar chart
-        st.bar_chart(website_counts.set_index("Website"))
-
+        # Visualize data
+        st.bar_chart(website_data.set_index("Website")["Job Listings"])
     else:
-        st.error("⚠️ No job listings found, or no sources detected. Try a different query.")
+        st.write("No job results found. Try a different query.")
