@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from collections import defaultdict, Counter
+import tldextract  # Extracts domain and subdomain
 
 # Your SerpApi Key
 SERP_API_KEY = st.secrets["SERP_API_KEY"]
@@ -24,24 +25,34 @@ def get_google_jobs_results(query, location="United States"):
     return data.get("jobs_results", [])
 
 # Function to extract job sources & calculate average positions
-def extract_job_sources_and_positions(jobs):
-    sources_count = Counter()  # Track count of each website
-    sources_positions = defaultdict(list)  # Track positions of each website
+def extract_domains_and_positions(jobs):
+    domain_count = Counter()  # Count how many times each domain appears
+    domain_positions = defaultdict(list)  # Track positions of each domain
 
     for job in jobs:
         if "apply_options" in job:
             for idx, option in enumerate(job["apply_options"], start=1):
-                website = option["title"]
-                sources_count[website] += 1
-                sources_positions[website].append(idx)  # Store the position
+                if "link" in option:
+                    url = option["link"]
+                    extracted = tldextract.extract(url)
+                    
+                    # Extract domain with subdomain (if any)
+                    if extracted.subdomain:
+                        domain = f"{extracted.subdomain}.{extracted.domain}.{extracted.suffix}"
+                    else:
+                        domain = f"{extracted.domain}.{extracted.suffix}"
 
-    # Calculate average position for each website
-    sources_avg_position = {
-        website: round(sum(positions) / len(positions), 2)
-        for website, positions in sources_positions.items()
+                    # Store the count and position
+                    domain_count[domain] += 1
+                    domain_positions[domain].append(idx)  # Store the position
+
+    # Calculate average position for each domain
+    domain_avg_position = {
+        domain: round(sum(positions) / len(positions), 2)
+        for domain, positions in domain_positions.items()
     }
 
-    return sources_count, sources_avg_position
+    return domain_count, domain_avg_position
 
 # Streamlit UI
 st.title("Google Jobs Tracker")
@@ -50,22 +61,22 @@ location = st.text_input("Enter Location:", "United States")
 
 if st.button("Fetch Job Listings"):
     jobs = get_google_jobs_results(job_query, location)
-    sources_count, sources_avg_position = extract_job_sources_and_positions(jobs)
+    domain_count, domain_avg_position = extract_domains_and_positions(jobs)
 
-    if sources_count:
+    if domain_count:
         # Convert data to a DataFrame
-        website_data = pd.DataFrame(
+        domain_data = pd.DataFrame(
             {
-                "Website": sources_count.keys(),
-                "Job Listings": sources_count.values(),
-                "Avg. Position": [sources_avg_position[site] for site in sources_count.keys()]
+                "Domain": domain_count.keys(),
+                "Job Listings": domain_count.values(),
+                "Avg. Position": [domain_avg_position[site] for site in domain_count.keys()]
             }
         )
 
-        st.write("### Website Share of Google Jobs Results")
-        st.dataframe(website_data)
+        st.write("### Website Share of Google Jobs Results (By Domain)")
+        st.dataframe(domain_data)
 
         # Visualize data
-        st.bar_chart(website_data.set_index("Website")["Job Listings"])
+        st.bar_chart(domain_data.set_index("Domain")["Job Listings"])
     else:
         st.write("No job results found. Try a different query.")
