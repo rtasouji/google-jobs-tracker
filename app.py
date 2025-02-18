@@ -77,7 +77,7 @@ if st.button("Fetch Job Listings"):
         website_counts.columns = ["Website", "Count"]
 
         # Display results
-        st.write(f"### Website Occurrences for '{job_query}' in {location}")
+        st.write(f"### Website link counts for '{job_query}' in {location}")
         st.dataframe(website_counts)
 
         # Show a bar chart
