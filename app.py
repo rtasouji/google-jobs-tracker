@@ -67,7 +67,7 @@ def extract_data(jobs):
 # Streamlit UI
 st.title("Google for Jobs Tracker")
 job_query = st.text_input("Enter Job Title:", "Software Engineer")
-location = st.text_input("Enter Location:", "United States")
+location = st.text_input("Enter Location:", "Chicago, IL")
 
 if st.button("Fetch Job Listings"):
     jobs = get_google_jobs_results(job_query, location)
