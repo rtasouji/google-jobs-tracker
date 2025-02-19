@@ -84,7 +84,7 @@ if st.button("Fetch Job Listings"):
         ).sort_values(by="Job Listings", ascending=False)  # Sort by job count
 
         st.write("### Website Share of Google Jobs Results (By Domain)")
-        st.dataframe(domain_data)
+        st.dataframe(domain_data.set_index("Domain"))  # ✅ Fix: Remove auto-index
 
     if company_count:
         # Convert data to a DataFrame for company stats
@@ -96,7 +96,8 @@ if st.button("Fetch Job Listings"):
         ).sort_values(by="Job Listings", ascending=False)  # Sort by job count
 
         st.write("### Job Listings Count by Company")
-        st.dataframe(company_data)
+        st.dataframe(company_data.set_index("Company Name"))  # ✅ Fix: Remove auto-index
+
 
     if not domain_count and not company_count:
         st.write("No job results found. Try a different query.")
