@@ -58,7 +58,7 @@ def extract_domains_and_positions(jobs):
     return domain_count, domain_avg_position
 
 # Streamlit UI
-st.title("Google for Jobs Tracker")
+st.title("Google for Jobs Rank Monitor")
 job_query = st.text_input("Enter Job Title:", "Software Engineer")
 location = st.text_input("Enter Location:", "United States")
 
