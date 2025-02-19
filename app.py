@@ -27,12 +27,19 @@ def get_google_jobs_results(query, location="United States"):
 
     return data.get("jobs_results", [])
 
-# Function to extract job sources & calculate average positions
-def extract_domains_and_positions(jobs):
+# Function to extract job sources & company names
+def extract_data(jobs):
     domain_count = Counter()  # Count how many times each domain appears
     domain_positions = defaultdict(list)  # Track positions of each domain
+    company_count = Counter()  # Count how many times each company appears
 
     for job in jobs:
+        # Track company names
+        if "company_name" in job:
+            company_name = job["company_name"]
+            company_count[company_name] += 1
+
+        # Track domains from "apply_options"
         if "apply_options" in job:
             for idx, option in enumerate(job["apply_options"], start=1):
                 if "link" in option:
@@ -47,7 +54,7 @@ def extract_domains_and_positions(jobs):
 
                     # Store the count and position
                     domain_count[domain] += 1
-                    domain_positions[domain].append(idx)  # Store the position
+                    domain_positions[domain].append(idx)
 
     # Calculate average position for each domain
     domain_avg_position = {
@@ -55,34 +62,41 @@ def extract_domains_and_positions(jobs):
         for domain, positions in domain_positions.items()
     }
 
-    return domain_count, domain_avg_position
+    return domain_count, domain_avg_position, company_count
 
 # Streamlit UI
-st.title("GfJ Visibility Analyser")
+st.title("Google for Jobs Tracker")
 job_query = st.text_input("Enter Job Title:", "Software Engineer")
 location = st.text_input("Enter Location:", "United States")
 
 if st.button("Fetch Job Listings"):
     jobs = get_google_jobs_results(job_query, location)
-    domain_count, domain_avg_position = extract_domains_and_positions(jobs)
+    domain_count, domain_avg_position, company_count = extract_data(jobs)
 
     if domain_count:
-        # Convert data to a DataFrame
+        # Convert data to a DataFrame for domain stats
         domain_data = pd.DataFrame(
             {
                 "Domain": domain_count.keys(),
                 "Job Listings": domain_count.values(),
                 "Avg. Position": [domain_avg_position[site] for site in domain_count.keys()]
             }
-        )
-
-        # ✅ Sort the DataFrame by "Job Listings" in descending order
-        domain_data = domain_data.sort_values(by="Job Listings", ascending=False)
+        ).sort_values(by="Job Listings", ascending=False)  # Sort by job count
 
         st.write("### Website Share of Google Jobs Results (By Domain)")
         st.dataframe(domain_data)
 
-        # Visualize sorted data
-        st.bar_chart(domain_data.set_index("Domain")["Job Listings"])
-    else:
+    if company_count:
+        # Convert data to a DataFrame for company stats
+        company_data = pd.DataFrame(
+            {
+                "Company Name": company_count.keys(),
+                "Job Listings": company_count.values()
+            }
+        ).sort_values(by="Job Listings", ascending=False)  # Sort by job count
+
+        st.write("### Job Listings Count by Company")
+        st.dataframe(company_data)
+
+    if not domain_count and not company_count:
         st.write("No job results found. Try a different query.")
