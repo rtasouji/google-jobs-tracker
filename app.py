@@ -11,7 +11,7 @@ st.image("logo.png", width=200)  # Adjust width as needed
 SERP_API_KEY = st.secrets["SERP_API_KEY"]
 
 # Function to fetch job listings from Google Jobs API
-def get_google_jobs_results(query, location="United States"):
+def get_google_jobs_results(query, location="Chicago, IL"):
     url = "https://serpapi.com/search"
     
     params = {
